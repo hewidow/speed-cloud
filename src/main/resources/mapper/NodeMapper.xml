@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.orgspeedcloud.speedcloud.core.mapper.NodeMapper">
+    <sql id="baseField">
+        user_id
+        ,node_id,is_directory,parent_id,full_path,node_name,node.file_id,is_delete,delete_time,create_time,delete_root
+    </sql>
+    <insert id="insertNode">
+        insert into node (USER_ID, NODE_ID, IS_DIRECTORY, PARENT_ID, FULL_PATH, NODE_NAME, FILE_ID, CREATE_TIME)
+        VALUES (#{node.userId},
+                #{node.nodeId},
+                #{node.isDirectory},
+                #{node.parentId},
+                #{node.fullPath},
+                #{node.nodeName},
+                #{node.fileId},
+                #{node.createTime})
+    </insert>
+    <insert id="insertNodes" parameterType="java.util.List">
+        insert into node (USER_ID, NODE_ID, IS_DIRECTORY, PARENT_ID, FULL_PATH, NODE_NAME, FILE_ID, CREATE_TIME)
+        VALUES
+        <foreach collection="nodes" item="node" open="(" separator="),(" close=")">
+            #{node.userId},
+            #{node.nodeId},
+            #{node.isDirectory},
+            #{node.parentId},
+            #{node.fullPath},
+            #{node.nodeName},
+            #{node.fileId},
+            #{node.createTime}
+        </foreach>
+    </insert>
+    <select id="queryMaxNodeId" resultType="java.lang.Integer">
+        select max(node_id)
+        from node
+        where USER_ID = #{userId}
+    </select>
+    <select id="queryChildNodes" resultType="com.orgspeedcloud.speedcloud.core.DTO.NodeDTO">
+        SELECT node_id,
+               node_name,
+               is_directory,
+               parent_id,
+               cloud_file.file_id,
+               file_size,
+               create_time,
+               delete_time
+        FROM node
+                 LEFT JOIN cloud_file ON cloud_file.file_id = node.file_id
+        where user_id = #{userId}
+          and parent_id = #{nodeId}
+          and is_delete = 0
+    </select>
+    <select id="queryNode" resultType="com.orgspeedcloud.speedcloud.core.entity.Node">
+        select *
+        from node
+        where user_id = #{userId}
+          and node_id = #{nodeId}
+    </select>
+    <select id="queryDeletedNodes" resultType="com.orgspeedcloud.speedcloud.core.DTO.NodeDTO">
+        SELECT node_id,
+               node_name,
+               is_directory,
+               parent_id,
+               cloud_file.file_id,
+               file_size,
+               create_time,
+               delete_time
+        FROM node
+                 LEFT JOIN cloud_file ON cloud_file.file_id = node.file_id
+        where user_id = #{userId}
+          and delete_root = 1
+    </select>
+    <select id="queryAllChildren" resultType="com.orgspeedcloud.speedcloud.core.entity.Node">
+        select *
+        from node
+        where user_id = #{userId}
+          and node_id != #{nodeId}
+          and full_path like CONCAT(#{fullPath}
+            , '%')
+    </select>
+    <select id="queryAllChildrenNoDelete" resultType="com.orgspeedcloud.speedcloud.core.entity.Node">
+        select *
+        from node
+        where user_id = #{userId}
+          and node_id != #{nodeId}
+          and is_delete = 0
+          and full_path like CONCAT(#{fullPath}
+            , '%')
+    </select>
+    <update id="updateNodes" parameterType="java.util.List">
+        insert into node (<include refid="baseField"></include>)
+        values
+        <foreach collection="nodes" item="node" index="index" open="(" separator="),(" close=")">
+            #{node.userId},
+            #{node.nodeId},
+            #{node.isDirectory},
+            #{node.parentId},
+            #{node.fullPath},
+            #{node.nodeName},
+            #{node.fileId},
+            #{node.isDelete},
+            #{node.deleteTime},
+            #{node.createTime},
+            #{node.deleteRoot}
+        </foreach>
+        on DUPLICATE KEY update
+        is_directory = VALUES(is_directory),
+        parent_id = VALUES(parent_id),
+        full_path = VALUES(full_path),
+        node_name = VALUES(node_name),
+        file_id = VALUES(file_id),
+        is_delete = VALUES(is_delete),
+        delete_time = VALUES(delete_time),
+        create_time = VALUES(create_time),
+        delete_root = VALUES(delete_root)
+    </update>
+    <update id="updateNode" parameterType="com.orgspeedcloud.speedcloud.core.entity.Node">
+        update node
+        <set>
+            <if test="node.isDirectory != null">
+                is_directory = #{node.isDirectory},
+            </if>
+            <if test="node.parentId != null">
+                parent_id = #{node.parentId},
+            </if>
+            <if test="node.fullPath != null and node.fullPath != ''">
+                full_path = #{node.fullPath},
+            </if>
+            <if test="node.nodeName != null and node.nodeName != ''">
+                node_name = #{node.nodeName},
+            </if>
+            <if test="node.fileId != null">
+                file_id = #{node.fileId},
+            </if>
+            <if test="node.isDelete != null">
+                is_delete = #{node.isDelete},
+            </if>
+            <if test="node.deleteTime != null">
+                delete_time = #{node.deleteTime},
+            </if>
+            <if test="node.createTime != null">
+                create_time = #{node.createTime},
+            </if>
+            <if test="node.deleteRoot != null">
+                delete_root = #{node.deletRoot},
+            </if>
+        </set>
+        where node_id = #{node.nodeId}
+        and user_id = #{node.userId}
+    </update>
+    <select id="queryNodesByNode" resultType="java.util.List">
+        select
+        (<include refid="baseField"></include>)
+        from node
+        where 1=1
+        <if test="node.isDirectory != null">
+            and is_directory = #{node.isDirectory}
+        </if>
+        <if test="node.parentId != null">
+            and parent_id = #{node.parentId}
+        </if>
+        <if test="node.fullPath != null and node.fullPath != ''">
+            and full_path = #{node.fullPath}
+        </if>
+        <if test="node.nodeName != null and node.nodeName != ''">
+            and node_name = #{node.nodeName}
+        </if>
+        <if test="node.fileId != null">
+            and file_id = #{node.fileId}
+        </if>
+        <if test="node.isDelete != null">
+            and is_delete = #{node.isDelete}
+        </if>
+        <if test="node.deleteTime != null">
+            and delete_time = #{node.deleteTime}
+        </if>
+        <if test="node.createTime != null">
+            and create_time = #{node.createTime}
+        </if>
+        <if test="node.deleteRoot != null">
+            and delete_root = #{node.deletRoot}
+        </if>
+    </select>
+    <delete id="deleteNodes">
+        delete
+        from node
+        where user_id = #{userId}
+          and full_path like CONCAT(#{fullPath}, '%')
+    </delete>
+    <select id="queryNodeDtoByIds" resultType="com.orgspeedcloud.speedcloud.core.DTO.NodeDTO">
+        SELECT node_id,
+        node_name,
+        is_directory,
+        parent_id,
+        cloud_file.file_id,
+        file_size,
+        create_time,
+        delete_time
+        FROM node
+        LEFT JOIN cloud_file ON cloud_file.file_id = node.file_id
+        where
+        <foreach collection="nodeIds" item="nodeId" separator="or">
+            node_id = #{nodeId} and
+            user_id = #{userId}
+        </foreach>
+    </select>
+    <select id="queryNodeByIds" resultType="com.orgspeedcloud.speedcloud.core.entity.Node">
+        select <include refid="baseField"></include> from node where
+        <foreach collection="nodeIds" item="nodeId" separator="or">
+            node_id = #{nodeId} and
+            user_id = #{userId}
+        </foreach>
+    </select>
+    <select id="queryNodeVo" resultType="com.orgspeedcloud.speedcloud.core.VO.NodeVo">
+        select <include refid="baseField"></include>,file_size
+        from node
+        left join cloud_file on node.file_id = cloud_file.file_id
+        where user_id = #{userId}
+        and node_id = #{nodeId}
+    </select>
+    <select id="queryAllChildrenNodeVo" resultType="com.orgspeedcloud.speedcloud.core.VO.NodeVo">
+        select <include refid="baseField"></include>,file_size
+        from node left join cloud_file on node.file_id = cloud_file.file_id
+        where user_id = #{userId}
+        and node_id != #{nodeId}
+        and full_path like CONCAT(#{fullPath},'%')
+    </select>
+</mapper>

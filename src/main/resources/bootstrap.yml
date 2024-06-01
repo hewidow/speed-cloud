@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: speed-cloud-server
+  cloud:
+    nacos:
+      config:
+        server-addr: 124.223.96.6:8848
+        prefix: speed-cloud-server
+        namespace: 1fd17eb9-2a28-4e6c-bb39-35d6ab8e1db6
+        file-extension: yaml
+        group: DEFAULT_GROUP

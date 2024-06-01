@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.orgspeedcloud.speedcloud.core.mapper.CloudFileMapper">
+    <select id="queryFileMd5AndNodeName" resultType="com.orgspeedcloud.speedcloud.core.VO.DownloadVO">
+        select file_md5, node_name, is_banned
+        from cloud_file
+                 left join node
+                           on cloud_file.file_id = node.file_id
+        where node_id = #{nodeId}
+          and user_id = #{userId}
+    </select>
+    <select id="queryDownloadVOByUserIdAndFullPath" resultType="com.orgspeedcloud.speedcloud.core.VO.DownloadVO">
+        select file_md5, node_name, node_id, full_path, is_directory, parent_id, cloud_file.file_id
+        from node
+                 left join cloud_file on node.file_id = cloud_file.file_id
+        where user_id = #{userId}
+          and full_path like
+              CONCAT(#{fullPath}, '%')
+          and is_delete = 0
+          and (ISNULL(is_banned) or is_banned = 0)
+    </select>
+    <select id="queryRecordCount" resultType="java.lang.Integer">
+        select count(1)
+        from cloud_file
+    </select>
+    <select id="queryFilePage" resultType="com.orgspeedcloud.speedcloud.core.entity.CloudFile">
+        select *
+        from cloud_file limit #{offset},#{length}
+    </select>
+    <select id="queryFileById" resultType="com.orgspeedcloud.speedcloud.core.entity.CloudFile">
+        select *
+        from cloud_file
+        where file_id = #{fileId}
+    </select>
+
+</mapper>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.orgspeedcloud.speedcloud.core.mapper.UserMapper">
+
+    <select id="queryByUsername" resultType="com.orgspeedcloud.speedcloud.core.entity.User">
+        select *
+        from user
+        where username = #{username}
+    </select>
+    <select id="queryUserDetailPage" resultType="com.orgspeedcloud.speedcloud.core.entity.UserDetail">
+        select user_id,
+               username,
+               email,
+               total_size,
+               available_size,
+               role_name,
+               banned,
+               theme
+        from user limit #{offset},#{length}
+    </select>
+    <select id="queryByUserId" resultType="com.orgspeedcloud.speedcloud.core.entity.UserDetail">
+        select user_id,
+               username,
+               email,
+               total_size,
+               available_size,
+               role_name,
+               banned,
+               theme
+        from user
+        where user_id = #{userId}
+    </select>
+    <select id="queryByEmail" resultType="com.orgspeedcloud.speedcloud.core.entity.User">
+        select *
+        from user
+        where email = #{email}
+    </select>
+    <select id="queryRecordCount" resultType="java.lang.Integer">
+        select count(1)
+        from user;
+    </select>
+    <insert id="insert" parameterType="com.orgspeedcloud.speedcloud.core.entity.User">
+        insert into user (`username`, `password`, `email`)
+        values (#{user.username}, #{user.password}, #{user.email})
+    </insert>
+    <update id="updatePasswordByEmail">
+        update user
+        set password = #{newPassword}
+        where email = #{email}
+    </update>
+    <update id="updateUserById" parameterType="com.orgspeedcloud.speedcloud.core.entity.UserDetail">
+        update user
+        <set>
+            <if test="user.roleName != null and user.roleName != ''">
+                role_name = #{user.roleName}
+            </if>
+            <if test="user.banned != null">
+                banned = #{user.banned}
+            </if>
+            <if test="user.theme != null">
+                theme = #{user.theme}
+            </if>
+        </set>
+        where
+        user_id = #{user.userId}
+    </update>
+    <update id="decreaseUserAvailable">
+        update user
+        set available_size = available_size - #{size}
+        where user_id = #{userId}
+    </update>
+</mapper>

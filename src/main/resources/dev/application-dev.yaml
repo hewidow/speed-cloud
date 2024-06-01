@@ -1,0 +1,53 @@
+
+server:
+  port: 4399
+
+mybatis:
+  mapper-locations: classpath:/mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+spring:
+  servlet:
+    multipart:
+      location: /home/speedcloud-repository
+      max-file-size: 20MB
+      max-request-size: 25MB
+  #      location: E:\
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost/speedcloud?useUnicode=true&characterEncoding=UTF-8
+    username: speedcloud
+    password: SpeedCloud604.
+  redis:
+    host: localhost
+    port: 6379
+    password: SpeedCloud604.
+  mvc:
+    throw-exception-if-no-handler-found: true
+  resources:
+    add-mappings: false
+  mail:
+    host: smtp.qq.com
+    username: qq邮箱
+    password: qq邮箱授权密码
+    default-encoding: UTF-8
+    port: 465
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
+  profiles:
+    active: dev
+
+logging:
+  file:
+    path: log
+
